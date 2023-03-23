@@ -1,4 +1,5 @@
 import math
+from random import randint
 
 import requests
 import json
@@ -31,10 +32,16 @@ class PlaceClient:
         self.pixel_y_start: int = self.json_data["image_start_coords"][1]
 
         # In seconds
-        self.delay_between_launches = (
-            self.json_data["thread_delay"]
-            if "thread_delay" in self.json_data
-            and self.json_data["thread_delay"] is not None
+        self.delay_between_launches_min = (
+            self.json_data["thread_delay_min"]
+            if "thread_delay_min" in self.json_data
+            and self.json_data["thread_delay_min"] is not None
+            else 3
+        )
+        self.delay_between_launches_max = (
+            self.json_data["thread_delay_max"]
+            if "thread_delay_max" in self.json_data
+            and self.json_data["thread_delay_max"] is not None
             else 3
         )
         self.unverified_place_frequency = (
@@ -331,6 +338,9 @@ class PlaceClient:
 
         return new_img
 
+    def get_random_delay(self):
+        return randint(self.delay_between_launches_min, self.delay_between_launches_max)
+
     def get_unset_pixel(self, x, y, index):
         originalX = x
         originalY = y
@@ -351,7 +361,7 @@ class PlaceClient:
             # Stagger reactivation of threads after wait
             if wasWaiting:
                 wasWaiting = False
-                time.sleep(index * self.delay_between_launches)
+                time.sleep(index * self.get_random_delay())
 
             if x >= self.image_size[0]:
                 y += 1
@@ -653,8 +663,7 @@ class PlaceClient:
                 target=self.task,
                 args=[index, worker, self.json_data["workers"][worker]],
             ).start()
-            # exit(1)
-            time.sleep(self.delay_between_launches)
+            time.sleep(self.get_random_delay())
 
 
 @click.command()
