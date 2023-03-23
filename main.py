@@ -361,7 +361,7 @@ class PlaceClient:
             # Stagger reactivation of threads after wait
             if wasWaiting:
                 wasWaiting = False
-                time.sleep(index * self.get_random_delay())
+                time.sleep(self.get_random_delay())
 
             if x >= self.image_size[0]:
                 y += 1
