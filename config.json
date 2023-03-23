@@ -1,5 +1,8 @@
 {
   "version": "1.0",
+  "disable":  true,
+  "ui_override":  true,
+  "web-override":  true,
   "image_path": "image.jpg",
   "image_start_coords": [ 741, 610 ],
   "legacy_transparency": true,

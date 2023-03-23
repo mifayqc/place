@@ -1,3 +1,3 @@
 @echo off
-pip install -r requirements.txt
+rem pip install -r requirements.txt
 python main.py --debug

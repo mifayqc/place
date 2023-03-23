@@ -6,6 +6,7 @@ import json
 import time
 import threading
 import sys
+import PySimpleGUI as sg 
 from io import BytesIO
 from http import HTTPStatus
 from websocket import create_connection
@@ -28,6 +29,9 @@ class PlaceClient:
 
         # Data
         self.json_data = utils.get_json_data(self, config_path)
+        self.version = self.json_data["version"]
+        self.is_ui_override = self.json_data["ui_override"]
+        self.is_disabled: bool = self.json_data["disable"]
         self.pixel_x_start: int = self.json_data["image_start_coords"][0]
         self.pixel_y_start: int = self.json_data["image_start_coords"][1]
 
@@ -658,6 +662,10 @@ class PlaceClient:
                 break
 
     def start(self):
+        if self.is_disabled:
+            logger.info("Application disabled by configuration")
+            return
+
         for index, worker in enumerate(self.json_data["workers"]):
             threading.Thread(
                 target=self.task,
@@ -687,8 +695,19 @@ def main(debug: bool, config: str):
         logger.add(sys.stderr, level="INFO")
 
     client = PlaceClient(config_path=config)
-    # Start everything
+
+    if client.is_ui_override:
+        layout = [  [sg.Text("Add throwaway bot usernames, e.g. 'user1:password1;user2:password2;user3:password3'")],    
+                    [sg.Input()],
+                    [sg.Button('Start')],
+                    [sg.Text("Send questions to IT: https://airplacequebec.open-source.tk/")] ]
+        window = sg.Window('r/place bot launcher version ' + client.version, layout)                                               
+        event, values = window.read()                    
+
     client.start()
+
+    if client.is_ui_override:
+        window.close() 
 
 
 if __name__ == "__main__":
