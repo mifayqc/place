@@ -1,4 +1,5 @@
 {
+  "version": "1.0",
   "image_path": "image.jpg",
   "image_start_coords": [ 741, 610 ],
   "legacy_transparency": true,
