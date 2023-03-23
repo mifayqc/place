@@ -661,6 +661,39 @@ class PlaceClient:
             if not repeat_forever:
                 break
 
+    def convert_creds_to_json(self, creds_str):
+        if not self.is_ui_override or creds_str is None:
+            return
+
+        workers_json = {"workers": {}}
+
+        user_idx = 1
+        start_index: int = 0
+        while start_index < len(creds_str):
+            end_index = creds_str.find(':', start_index)
+            if end_index == -1:
+                break
+            username = creds_str[start_index:end_index]
+
+            start_index = end_index + 1
+            end_index = creds_str.find(';', start_index)
+            if end_index == -1:
+                break
+            password = creds_str[start_index:end_index]
+            
+            user_json = {    username: {
+                                    "password": password,
+                                    "start_coords": [ 0, 0 ]
+                                    },
+                        }
+            workers_json["workers"].update(user_json)
+
+            user_idx = user_idx + 1
+            start_index = end_index + 1
+
+        self.json_data["workers"] = workers_json
+        logger.info(self.json_data["workers"])
+
     def start(self):
         if self.is_disabled:
             logger.info("Application disabled by configuration")
@@ -697,12 +730,13 @@ def main(debug: bool, config: str):
     client = PlaceClient(config_path=config)
 
     if client.is_ui_override:
-        layout = [  [sg.Text("Add throwaway bot usernames, e.g. 'user1:password1;user2:password2;user3:password3'")],    
+        layout = [  [sg.Text("Add throwaway bot usernames, e.g. 'user1:password1;user2:password2;user3:password3;'")],    
                     [sg.Input()],
                     [sg.Button('Start')],
                     [sg.Text("Send questions to IT: https://airplacequebec.open-source.tk/")] ]
         window = sg.Window('r/place bot launcher version ' + client.version, layout)                                               
-        event, values = window.read()                    
+        event, values = window.read()         
+        client.convert_creds_to_json(values[0])
 
     client.start()
 
